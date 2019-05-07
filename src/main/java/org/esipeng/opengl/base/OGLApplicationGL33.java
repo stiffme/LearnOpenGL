@@ -1,7 +1,6 @@
 package org.esipeng.opengl.base;
 
 import org.lwjgl.glfw.GLFWFramebufferSizeCallback;
-import org.lwjgl.glfw.GLFWFramebufferSizeCallbackI;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL33;
 
@@ -36,6 +35,22 @@ public abstract class OGLApplicationGL33 extends OGLApplicationAbstract {
         }
         m_programs.add(program);
         return program;
+    }
+
+    protected int loadShader(int type, String shaderSrc) throws Exception    {
+        int shader = glCreateShader(type);
+        glShaderSource(shader,shaderSrc);
+        glCompileShader(shader);
+
+        int compiled = glGetShaderi(shader, GL_COMPILE_STATUS);
+        if(compiled != GL_TRUE) {
+            System.out.println("Failed to compile shader! \n" + shaderSrc );
+            System.out.println(glGetShaderInfoLog(shader));
+            throw new Exception("Failed to compile shader");
+        }
+        m_shaders.add(shader);
+        return shader;
+
     }
 
     protected void destroy()    {

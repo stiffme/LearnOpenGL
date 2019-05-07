@@ -88,7 +88,7 @@ public abstract class OGLApplicationAbstract {
 
 
     protected String loadFileFromResource(String resource ) throws Exception {
-        return new String(Files.readAllBytes(Paths.get(getClass().getResource("foo.txt").toURI())));
+        return new String(Files.readAllBytes(Paths.get(getClass().getClassLoader().getResource(resource).toURI())));
     }
 
     protected FloatBuffer floatArrayToBuffer(float[] arr)   {
