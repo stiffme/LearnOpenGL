@@ -35,7 +35,8 @@ public abstract class OGLApplicationAbstract {
             return;
         }
         m_currentWindow = glfwGetCurrentContext();
-
+        //by default set the swap interval to 1
+        glfwSwapInterval(1);
         loop();
     }
 
