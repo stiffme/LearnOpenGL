@@ -53,6 +53,15 @@ public abstract class OGLApplicationGL33 extends OGLApplicationAbstract {
 
     }
 
+    protected int compileAndLinkProgram(String vShaderPath, String fShaderPath) throws Exception    {
+        String vShaderSrc = loadFileFromResource(vShaderPath);
+        String fShaderSrc = loadFileFromResource(fShaderPath);
+        int vShader = loadShader(GL_VERTEX_SHADER, vShaderSrc);
+        int fShader = loadShader(GL_FRAGMENT_SHADER, fShaderSrc);
+        int program = linkProgram(vShader, fShader);
+        return program;
+    }
+
     protected void destroy()    {
         m_programs.forEach(GL33::glDeleteProgram);
         m_shaders.forEach(GL33::glDeleteShader);

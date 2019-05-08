@@ -66,12 +66,19 @@ public class HelloTriangle extends OGLApplicationGL33 {
 
         glBindVertexArray(0);
 
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         return true;
     }
 
     @Override
     protected void update(float elapsed) {
+        int outColorLoc = glGetUniformLocation(m_program, "outColor");
+        if(outColorLoc == -1)   {
+            System.err.println("uniform outColor not found!");
+            return;
+        }
+        float greenValue = ((float)Math.sin(glfwGetTime()) / 2.0f) + 0.5f;
+        glUseProgram(m_program);
+        glUniform4f(outColorLoc, 0.0f, greenValue, 0.0f, 1.0f);
 
     }
 
