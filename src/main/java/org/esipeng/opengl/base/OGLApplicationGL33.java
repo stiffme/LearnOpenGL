@@ -9,13 +9,14 @@ import static org.lwjgl.opengl.GL33.*;
 import static org.lwjgl.glfw.GLFW.*;
 
 public abstract class OGLApplicationGL33 extends OGLApplicationAbstract {
-    protected LinkedHashSet<Integer> m_vbos, m_vaos, m_shaders, m_programs;
+    protected LinkedHashSet<Integer> m_vbos, m_vaos, m_shaders, m_programs, m_textures;
 
     public OGLApplicationGL33() {
         m_vaos = new LinkedHashSet<>();
         m_vbos = new LinkedHashSet<>();
         m_shaders = new LinkedHashSet<>();
         m_programs = new LinkedHashSet<>();
+        m_textures = new LinkedHashSet<>();
     }
 
     protected int linkProgram(int vShader, int fShader)    {
@@ -67,6 +68,7 @@ public abstract class OGLApplicationGL33 extends OGLApplicationAbstract {
         m_shaders.forEach(GL33::glDeleteShader);
         m_vbos.forEach(GL33::glDeleteBuffers);
         m_vaos.forEach(GL33::glDeleteVertexArrays);
+        m_textures.forEach(GL33::glDeleteTextures);
     }
 
 
@@ -80,6 +82,12 @@ public abstract class OGLApplicationGL33 extends OGLApplicationAbstract {
         int vao = glGenVertexArrays();
         m_vaos.add(vao);
         return vao;
+    }
+
+    protected int getManagedTexture()   {
+        int texture = glGenTextures();
+        m_textures.add(texture);
+        return texture;
     }
 
     @Override

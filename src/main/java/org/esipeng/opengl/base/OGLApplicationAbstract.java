@@ -92,6 +92,14 @@ public abstract class OGLApplicationAbstract {
         return new String(Files.readAllBytes(Paths.get(getClass().getClassLoader().getResource(resource).toURI())));
     }
 
+    protected byte[] loadBinaryFileFromResource(String resource ) throws Exception {
+        return Files.readAllBytes(Paths.get(getClass().getClassLoader().getResource(resource).toURI()));
+    }
+
+    protected String getResourcePath(String resource) throws Exception  {
+        return Paths.get(getClass().getClassLoader().getResource(resource).toURI()).toAbsolutePath().toString();
+    }
+
     protected FloatBuffer floatArrayToBuffer(float[] arr)   {
         FloatBuffer ret = MemoryUtil.memAllocFloat(arr.length);
         for(float f : arr)  {
