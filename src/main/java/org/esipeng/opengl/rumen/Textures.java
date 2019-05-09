@@ -27,6 +27,7 @@ public class Textures extends OGLApplicationGL33 {
 
     @Override
     protected boolean applicationInitAfterContext() {
+        this.enableFps(true);
         try {
             m_program = compileAndLinkProgram("Textures/vertex.glsl", "Textures/fragment.glsl");
         } catch (Exception e)   {
@@ -149,7 +150,7 @@ public class Textures extends OGLApplicationGL33 {
     @Override
     protected void update(float elapsed) {
         if(m_saturateLoc != -1) {
-            float saturate = (float)Math.sin(glfwGetTime());
+            float saturate = (float)Math.abs(Math.sin(glfwGetTime()));
             glUseProgram(m_program);
             glUniform1f(m_saturateLoc, saturate);
         }
