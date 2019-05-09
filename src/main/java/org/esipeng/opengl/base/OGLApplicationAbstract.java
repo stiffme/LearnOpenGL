@@ -28,6 +28,7 @@ public abstract class OGLApplicationAbstract {
             System.out.println("init failed");
             return;
         }
+        glfwSwapInterval(1);
 
         if(!applicationInit())  {
             System.out.println("application init fail");
@@ -36,7 +37,7 @@ public abstract class OGLApplicationAbstract {
         }
         m_currentWindow = glfwGetCurrentContext();
         //by default set the swap interval to 1
-        glfwSwapInterval(1);
+
         loop();
     }
 
