@@ -11,7 +11,7 @@ import static org.lwjgl.opengl.GL33.*;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
-public class CoordSystem3D extends OGLApplicationGL33 {
+public class CoordSystem3DExample extends OGLApplicationGL33 {
     int m_width = 800, m_height = 600;
     int m_program, m_vao, m_texture1, m_texture2;
     int  m_modelLoc = -1;
@@ -36,7 +36,7 @@ public class CoordSystem3D extends OGLApplicationGL33 {
     float[] m_initialAngle;
     @Override
     protected boolean applicationCreateContext() {
-        long window = glfwCreateWindow(m_width, m_height, "CoordSystem 3D", NULL, NULL);
+        long window = glfwCreateWindow(m_width, m_height, "CoordSystemExample 3D", NULL, NULL);
         if(window == NULL)
             return false;
         glfwMakeContextCurrent(window);
@@ -236,7 +236,7 @@ public class CoordSystem3D extends OGLApplicationGL33 {
     }
 
     public static void main(String[] args)  {
-        OGLApplicationAbstract application = new CoordSystem3D();
+        OGLApplicationAbstract application = new CoordSystem3DExample();
         application.run();
     }
 }

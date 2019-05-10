@@ -11,7 +11,7 @@ import static org.lwjgl.opengl.GL33.*;
 import static org.lwjgl.stb.STBImage.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
-public class CoordSystem extends OGLApplicationGL33 {
+public class CoordSystemExample extends OGLApplicationGL33 {
     int m_width = 800, m_height = 600;
 
     int m_program, m_vao, m_texture1, m_texture2;
@@ -194,7 +194,7 @@ public class CoordSystem extends OGLApplicationGL33 {
     }
 
     public static void main(String[] args)  {
-        OGLApplicationAbstract application = new CoordSystem();
+        OGLApplicationAbstract application = new CoordSystemExample();
         application.run();
     }
 }
