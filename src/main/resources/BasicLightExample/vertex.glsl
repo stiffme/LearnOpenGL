@@ -8,12 +8,13 @@ layout (std140) uniform view_projection {
     mat4 model;
     mat4 view;
     mat4 projection;
+    mat4 normalMatrix;
 };
 
 out vec3 Normal;
 out vec3 FragPos;
 void main() {
     gl_Position = projection * view * model * vec4(aPos, 1.0f);
-    Normal = aNormal;
+    Normal = mat3(normalMatrix) * aNormal;
     FragPos = vec3( model * vec4(aPos, 1.0f));
 }

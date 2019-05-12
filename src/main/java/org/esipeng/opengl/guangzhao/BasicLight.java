@@ -101,7 +101,7 @@ public class BasicLight extends OGLApplicationGL33 {
         //uniform  MVP block VBO
         m_mvpVBO = getManagedVBO();
         glBindBuffer(GL_UNIFORM_BUFFER, m_mvpVBO);
-        nglBufferData(GL_UNIFORM_BUFFER, Float.BYTES * 16  * 3, 0L, GL_STATIC_DRAW);
+        nglBufferData(GL_UNIFORM_BUFFER, Float.BYTES * 16  * 4, 0L, GL_STATIC_DRAW);
         glBindBuffer(GL_UNIFORM_BUFFER, 0);
         //bind the block VBO to binding point
         glBindBufferBase(GL_UNIFORM_BUFFER, MVP_BLOCK_BINDING_POINT, m_mvpVBO);
@@ -202,6 +202,10 @@ public class BasicLight extends OGLApplicationGL33 {
 
         //object model mat4
         glBufferSubData(GL_UNIFORM_BUFFER, Float.BYTES * 0, m_model.get(m_matBuffer));
+        //object model normal matrix in world space
+        m_model.invert().transpose();
+        glBufferSubData(GL_UNIFORM_BUFFER, Float.BYTES * 48, m_model.get(m_matBuffer));
+
         glUseProgram(m_programObject);
         glBindVertexArray(m_objectVAO);
         glDrawArrays(GL_TRIANGLES,0,36);
