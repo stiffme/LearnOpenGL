@@ -4,6 +4,7 @@ import org.esipeng.opengl.base.Camera;
 import org.esipeng.opengl.base.OGLApplicationAbstract;
 import org.esipeng.opengl.base.OGLApplicationGL33;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL33.*;
@@ -24,6 +25,7 @@ public class BasicLight extends OGLApplicationGL33 {
     Camera m_camera;
 
     Matrix4f m_model, m_view, m_projection;
+    Vector3f m_lightPos = new Vector3f(0.6f,0.0f, 5.0f);
 
     @Override
     protected boolean applicationCreateContext() {
@@ -119,7 +121,8 @@ public class BasicLight extends OGLApplicationGL33 {
                 0.2f,   0.0f,   0.0f,   0.0f,         //ambientStrength
                 1.f,    0.5f,   0.31f,  0.0f,         //object color
                 1.f,    1.f,    1.f,    0.0f,         //light color
-                1.2f,   1.f,    2.f,    0.0f,         //light Pos
+                m_lightPos.x,   m_lightPos.y,    m_lightPos.z,    0.0f,         //light Pos
+                //0.5f,   2.0f,   6.0f,   0.0f,         //viewPos
         };
         System.out.println("Buffer size is " + Float.BYTES * colorData.length);
         glBufferData(GL_UNIFORM_BUFFER,colorData,GL_STATIC_DRAW);
@@ -163,8 +166,8 @@ public class BasicLight extends OGLApplicationGL33 {
 
         //initialize camera
         m_camera = new Camera(
-                0.5f,2f,6.f,
-                -0.5f,-2.f,-6.f,
+                0.0f,0.0f,10.f,
+                0.0f,0.f,-1.f,
                 0.f,1.f,0.f,
                 m_width/2, m_height/2,
                 m_window
@@ -184,6 +187,14 @@ public class BasicLight extends OGLApplicationGL33 {
     @Override
     protected void update(float elapsed) {
         m_camera.processInput(elapsed);
+        int viewPosLoc = glGetUniformLocation(m_programObject, "viewPos");
+        if(viewPosLoc == -1)
+            System.err.println("viewPos loc not found!");
+
+        glUseProgram(m_programObject);
+        float[] cameraPos = m_camera.getCameraPos();
+        glUniform3f(viewPosLoc, cameraPos[0], cameraPos[1], cameraPos[2]);
+
     }
 
     @Override
@@ -213,7 +224,7 @@ public class BasicLight extends OGLApplicationGL33 {
         //light
         m_model.identity();
 
-        m_model.translate(1.2f,1.0f,2.0f);
+        m_model.translate(m_lightPos);
         m_model.scale(0.2f);
 
         glBufferSubData(GL_UNIFORM_BUFFER, Float.BYTES * 0, m_model.get(m_matBuffer));

@@ -10,7 +10,7 @@ import static org.lwjgl.glfw.GLFW.*;
 public class Camera {
     Vector3f m_cameraPos, m_cameraFront, m_camaraUp, m_vecTemp;
     Matrix4f m_matLookAt = new Matrix4f();
-    float[] m_buf = new float[16];
+    float[] m_matBuf = new float[16], m_vecBuf = new float[3];
     float speedPerMilisecond = 2.5f;
     float m_lastX = 400, m_lastY = 300;
     long m_window;
@@ -121,7 +121,14 @@ public class Camera {
 
     public float[] generateView()   {
         m_matLookAt.setLookAt(m_cameraPos, m_cameraPos.add(m_cameraFront, m_vecTemp) , m_camaraUp);
-        return m_matLookAt.get(m_buf);
+        return m_matLookAt.get(m_matBuf);
     }
 
+    public float[] getCameraPos()   {
+        m_vecBuf[0] = m_cameraPos.x;
+        m_vecBuf[1] = m_cameraPos.y;
+        m_vecBuf[2] = m_cameraPos.z;
+        //System.out.printf("Camera Pos %.2f %.2f %.2f\n", m_vecBuf[0], m_vecBuf[1], m_vecBuf[2]);
+        return m_vecBuf;
+    }
 }
