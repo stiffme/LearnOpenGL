@@ -22,6 +22,10 @@ public class Camera {
         return fov;
     }
 
+    public float getFovRadians()    {
+        return (float)Math.toRadians(fov);
+    }
+
     public float getSpeedPerMilisecond() {
         return speedPerMilisecond;
     }
@@ -122,6 +126,11 @@ public class Camera {
     public float[] generateView()   {
         m_matLookAt.setLookAt(m_cameraPos, m_cameraPos.add(m_cameraFront, m_vecTemp) , m_camaraUp);
         return m_matLookAt.get(m_matBuf);
+    }
+
+    public Matrix4f generateViewMat()   {
+        m_matLookAt.setLookAt(m_cameraPos, m_cameraPos.add(m_cameraFront, m_vecTemp) , m_camaraUp);
+        return m_matLookAt;
     }
 
     public float[] getCameraPos()   {
