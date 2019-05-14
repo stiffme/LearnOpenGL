@@ -95,6 +95,9 @@ public class UBOManager {
             case GL_FLOAT_MAT4:
                 ret = Float.BYTES * 16;
                 break;
+            case GL_SAMPLER_2D:
+                ret = Integer.BYTES;
+                break;
                 default:
                     System.out.printf("Uniform type %d not recognized\n", type);
 
@@ -136,6 +139,18 @@ public class UBOManager {
     public boolean setValue(String uniformIndiceName, float value)  {
         temp1[0] = value;
         return setValue(uniformIndiceName, temp1);
+    }
+
+    public boolean setValue(String uniformIndiceName, int value)    {
+        if(!checkUniformAndSize(uniformIndiceName, Integer.BYTES))
+            return false;
+
+        UniformInformation uniformInformation = m_indices.get(uniformIndiceName);
+        //update
+        glBindBuffer(GL_UNIFORM_BUFFER, m_ubo);
+        glBufferSubData(GL_UNIFORM_BUFFER, uniformInformation.blockOffset, new int[]{value});
+        glBindBuffer(GL_UNIFORM_BUFFER, 0);
+        return true;
     }
 
     public boolean setValue(String uniformIndiceName, float value1, float value2)  {
