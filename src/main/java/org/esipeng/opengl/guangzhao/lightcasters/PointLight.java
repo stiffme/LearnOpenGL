@@ -23,6 +23,7 @@ public class PointLight extends OGLApplicationGL33 {
     private Matrix4f m_model, m_projection;
     private Camera m_camera;
     private Vector4f m_lightPos = new Vector4f();
+    private Vector3f m_initialLightPos = new Vector3f(1.2f,1.f,2f);
     private Vector3f m_rotateAxis = new Vector3f(1.0f,0.3f,0.5f).normalize();
 
     private Vector3f[] m_cubePositions = {
@@ -219,7 +220,7 @@ public class PointLight extends OGLApplicationGL33 {
         int paralLightVBO = getManagedVBO();
         if(!m_pointLightUBO.attachUniformBlock(m_program,"PointLight", paralLightVBO))
             return false;
-        m_pointLightUBO.setValue("pLightPos",-0.2f,-1.0f,-0.3f);
+        //m_pointLightUBO.setValue("pLightPos",-0.2f,-1.0f,-0.3f);
         m_pointLightUBO.setValue("pAmbient",0.2f,0.2f,0.2f);
         m_pointLightUBO.setValue("pDiffuse",0.5f,0.5f,0.5f);
         m_pointLightUBO.setValue("pSpecular", 1.0f,1.0f,1.0f);
@@ -262,7 +263,7 @@ public class PointLight extends OGLApplicationGL33 {
 
         //calculate pDirection
         //m_lightPos.set(0.f,0.f,0.f,1.f)(-0.2f,-1.0f,-0.3f).mul(m_camera.generateViewMat().get3x3(new Matrix3d()));
-        Matrix4f moveLight = new Matrix4f().translate(1.2f, 1.0f,2.0f);
+        Matrix4f moveLight = new Matrix4f().translate(m_initialLightPos);
         m_lightPos.set(0.f,0.f,0.f,1.f)
                 .mul(moveLight)
                 .mul(m_camera.generateViewMat());
@@ -282,7 +283,7 @@ public class PointLight extends OGLApplicationGL33 {
         }
 
         //draw light
-        moveLight.identity().translate(1.2f, 1.0f,2.0f).scale(0.2f);
+        moveLight.identity().translate(m_initialLightPos).scale(0.2f);
         m_modelViewProjectionUBO.setValue("model", moveLight);
         glUseProgram(m_programLight);
         glDrawArrays(GL_TRIANGLES,0,36);
