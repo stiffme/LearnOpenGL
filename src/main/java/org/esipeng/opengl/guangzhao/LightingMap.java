@@ -262,7 +262,7 @@ public class LightingMap extends OGLApplicationGL33 {
                 return false;
 
             m_textureMatrix = getManagedTexture();
-            glBindTexture(GL_TEXTURE_2D, m_textureSpecular);
+            glBindTexture(GL_TEXTURE_2D, m_textureMatrix);
             glTexImage2D(GL_TEXTURE_2D,
                     0,
                     GL_RGB,

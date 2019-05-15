@@ -48,6 +48,7 @@ public class ParallelLight extends OGLApplicationGL33 {
 
     @Override
     protected boolean applicationInitAfterContext() {
+
         float[] vertices = {
                 // positions          // normals           // texture coords
                 -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
@@ -131,7 +132,8 @@ public class ParallelLight extends OGLApplicationGL33 {
         int uniformBlockLoc = glGetUniformBlockIndex(m_program,"ModelViewProjection");
         if(uniformBlockLoc == -1)
             return false;
-        glBindBufferBase(GL_UNIFORM_BUFFER,uniformBlockLoc,mvpUBO);
+        glUniformBlockBinding(m_program,uniformBlockLoc, MVP_BINDING_POINT);
+        glBindBufferBase(GL_UNIFORM_BUFFER,MVP_BINDING_POINT, mvpUBO);
 
 
         //load texture
@@ -208,11 +210,13 @@ public class ParallelLight extends OGLApplicationGL33 {
         m_paralLightUBO.setValue("pDirection",-0.2f,-1.0f,-0.3f);
         m_paralLightUBO.setValue("pAmbient",0.2f,0.2f,0.2f);
         m_paralLightUBO.setValue("pDiffuse",0.5f,0.5f,0.5f);
-        //m_paralLightUBO.setValue("pSpecular", 1.0f,1.0f,1.0f);
+        m_paralLightUBO.setValue("pSpecular", 1.0f,1.0f,1.0f);
         //lightDir should be updated in update, since it is in view space
         glBindBufferBase(GL_UNIFORM_BUFFER,PARAL_LIGHT_BINDING_POINT,paralLightVBO);
 
         int paralLightBlockLoc = glGetUniformBlockIndex(m_program,"ParalLight");
+        if(paralLightBlockLoc == -1)
+            return false;
         glUniformBlockBinding(m_program,paralLightBlockLoc,PARAL_LIGHT_BINDING_POINT);
 
 
@@ -255,6 +259,7 @@ public class ParallelLight extends OGLApplicationGL33 {
             m_modelViewProjectionUBO.setValue("model",m_model);
             glDrawArrays(GL_TRIANGLES,0,36);
         }
+        glFinish();
     }
 
     public static void main(String[] args)  {
