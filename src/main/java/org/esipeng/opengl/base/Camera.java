@@ -50,6 +50,13 @@ public class Camera {
         m_window = window;
     }
 
+    public float[] getFront()  {
+        m_vecBuf[0] = m_cameraFront.x;
+        m_vecBuf[1] = m_cameraFront.y;
+        m_vecBuf[2] = m_cameraFront.z;
+        return m_vecBuf;
+    }
+
     public Camera(long window) {
         this(
                 0.f,0.f,3.0f,
