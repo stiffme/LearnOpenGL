@@ -207,7 +207,7 @@ public class ParallelLight extends OGLApplicationGL33 {
         int paralLightVBO = getManagedVBO();
         if(!m_paralLightUBO.attachUniformBlock(m_program,"ParalLight", paralLightVBO))
             return false;
-        m_paralLightUBO.setValue("pDirection",-0.2f,-1.0f,-0.3f);
+        m_paralLightUBO.setValue("pDirection",0.0f,0.0f,-1.f);
         m_paralLightUBO.setValue("pAmbient",0.2f,0.2f,0.2f);
         m_paralLightUBO.setValue("pDiffuse",0.5f,0.5f,0.5f);
         m_paralLightUBO.setValue("pSpecular", 1.0f,1.0f,1.0f);
