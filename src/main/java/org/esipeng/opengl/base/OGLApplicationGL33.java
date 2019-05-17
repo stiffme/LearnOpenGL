@@ -3,12 +3,16 @@ package org.esipeng.opengl.base;
 import org.lwjgl.glfw.GLFWFramebufferSizeCallback;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL33;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.LinkedHashSet;
 import static org.lwjgl.opengl.GL33.*;
 import static org.lwjgl.glfw.GLFW.*;
 
 public abstract class OGLApplicationGL33 extends OGLApplicationAbstract {
+    private static final Logger logger = LoggerFactory.getLogger(OGLApplicationGL33.class);
+
     protected LinkedHashSet<Integer> m_vbos, m_vaos, m_shaders, m_programs, m_textures;
 
     public OGLApplicationGL33() {
@@ -110,6 +114,18 @@ public abstract class OGLApplicationGL33 extends OGLApplicationAbstract {
         });
 
         return applicationInitAfterContext();
+    }
+
+    //convinient function
+    protected boolean setUniform1i(int program, String uniform, int value)   {
+        int uniformLoc = glGetUniformLocation(program,uniform);
+        if(uniformLoc == -1)    {
+            logger.warn("Uniform {} not set for {}", uniform, value);
+            return false;
+        }
+        glUseProgram(program);
+        glUniform1i(uniformLoc, value);
+        return true;
     }
 
 

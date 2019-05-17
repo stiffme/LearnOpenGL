@@ -33,11 +33,21 @@ public class TextureLoader {
     }
 
     public boolean loadFromResource(String resource)    {
-        release();
 
         try {
             String resourcePath = Paths.get(getClass().getClassLoader().getResource(resource).toURI()).toAbsolutePath().toString();
-            data = stbi_load(resourcePath, x, y, nrChannel, 0);
+            return loadFromFilePath(resourcePath);
+        }catch ( Exception e)   {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean loadFromFilePath(String path)    {
+        release();
+
+        try {
+            data = stbi_load(path, x, y, nrChannel, 0);
             if(data == null)
                 return false;
         }catch ( Exception e)   {
