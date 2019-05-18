@@ -4,7 +4,9 @@ import org.joml.Matrix4f;
 import org.joml.Vector2f;
 import org.joml.Vector3f;
 import org.joml.Vector4f;
-import org.lwjgl.system.MemoryUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 import java.util.HashMap;
 
@@ -12,6 +14,8 @@ import static org.lwjgl.opengl.GL33.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class UBOManager {
+    private static Logger logger = LoggerFactory.getLogger(UBOManager.class);
+
     private int m_blockIndex = -1;
     private class UniformInformation    {
         private int blockOffset, blockSizeInBytes;
@@ -46,7 +50,7 @@ public class UBOManager {
         m_ubo = ubo;
 
         int dataSize = glGetActiveUniformBlocki(program, blockIndex, GL_UNIFORM_BLOCK_DATA_SIZE);
-        System.out.printf("block index %s size is %d\n", uniformBlockName, dataSize);
+        logger.debug("block index {} size is {}", uniformBlockName, dataSize);
 
         //allocate UBO
         glBindBuffer(GL_UNIFORM_BUFFER, m_ubo);
@@ -54,7 +58,7 @@ public class UBOManager {
 
         //get uniform number inside this uniform block
         int nrOfUniforms = glGetActiveUniformBlocki(program, blockIndex, GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS);
-        System.out.printf("There are %d uniforms in block %s\n", nrOfUniforms, uniformBlockName);
+        logger.debug("There are {} uniforms in block {}", nrOfUniforms, uniformBlockName);
 
         //get the uniform index
         int[] blockIndices = new int[nrOfUniforms];
@@ -67,15 +71,26 @@ public class UBOManager {
             int uniformIndiceOffset = glGetActiveUniformsi(program, indice, GL_UNIFORM_OFFSET);
             int uniformIndiceSize = glGetActiveUniformsi(program, indice, GL_UNIFORM_SIZE);
             int uniformIndiceType = glGetActiveUniformsi(program,indice, GL_UNIFORM_TYPE);
+
             int byteSize = mapTypeToByteSize(uniformIndiceType);
-            int byteInTotal;
-            if(byteSize == Integer.MAX_VALUE)
-                byteInTotal = byteSize;
-            else
-                byteInTotal = byteSize * uniformIndiceSize;
-            UniformInformation uniformInformation = new UniformInformation(uniformIndiceOffset, byteInTotal);
-            System.out.printf("Uniform %s offset %d size %d\n",uniformIndiceName,uniformIndiceOffset,byteInTotal);
+
+            UniformInformation uniformInformation = new UniformInformation(uniformIndiceOffset, byteSize);
+            logger.debug("Uniform {} offset {} size {}",uniformIndiceName,uniformIndiceOffset,byteSize);
             m_indices.put(uniformIndiceName, uniformInformation);
+
+            if(uniformIndiceSize > 1)   {
+                //this is an array
+                String arrayLeft = uniformIndiceName.substring(0, uniformIndiceName.lastIndexOf('[') +1);
+                String arrayRight = uniformIndiceName.substring(uniformIndiceName.lastIndexOf(']'));
+                for(int i = 1; i < uniformIndiceSize; ++i)  {
+                    String fullParameterName = arrayLeft + i + arrayRight;
+                    uniformInformation = new UniformInformation(uniformIndiceOffset + i * byteSize, byteSize);
+                    logger.debug("Uniform {} offset {} size {}", fullParameterName,
+                            uniformInformation.blockOffset,
+                            uniformInformation.blockSizeInBytes);
+                    m_indices.put(fullParameterName, uniformInformation);
+                }
+            }
         }
 
         return true;
@@ -84,6 +99,9 @@ public class UBOManager {
     private int mapTypeToByteSize(int type) {
         int ret = Integer.MAX_VALUE;
         switch (type)   {
+            case GL_INT:
+                ret = Integer.BYTES;
+                break;
             case GL_FLOAT:
                 ret = Float.BYTES;
                 break;
@@ -103,7 +121,7 @@ public class UBOManager {
                 ret = Integer.BYTES;
                 break;
                 default:
-                    System.out.printf("Uniform type %d not recognized\n", type);
+                    logger.warn("Uniform type {} not recognized", type);
 
         }
         return ret;

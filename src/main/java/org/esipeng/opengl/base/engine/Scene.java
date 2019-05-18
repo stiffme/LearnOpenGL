@@ -26,6 +26,11 @@ public class Scene implements TextureRepository, MaterialReposibory {
     private Material[] mMaterials;
     private Mesh[] mMeshes;
     MeshNode mRoot;
+    int mProgram;
+
+    public Scene(int program)   {
+        mProgram = program;
+    }
 
 
     public boolean loadSceneFromResource(String resourcePath)   {
@@ -46,7 +51,8 @@ public class Scene implements TextureRepository, MaterialReposibory {
         AIScene aiScene = aiImportFile(path,
                 aiProcess_Triangulate |
                         aiProcess_FlipUVs |
-                        aiProcess_GenNormals );
+                        aiProcess_GenNormals |
+                        aiProcess_GenUVCoords);
 
         if(aiScene == null || (aiScene.mFlags() & AI_SCENE_FLAGS_INCOMPLETE) != 0 || aiScene.mRootNode() == null )  {
             logger.error("Loading {} failed.", path);
@@ -56,12 +62,12 @@ public class Scene implements TextureRepository, MaterialReposibory {
         File sceneFile = new File(path);
         mDirectory = sceneFile.getParent();
         logger.info("directory of scene is {}", mDirectory);
-        processScene(aiScene);
+        processScene(aiScene, mProgram);
         aiFreeScene(aiScene);
         return true;
     }
 
-    private void processScene(AIScene aiScene) {
+    private void processScene(AIScene aiScene, int program) {
         //embeded textures are not supported
         if(aiScene.mNumTextures() > 0)
             logger.warn("{} embeded textures are not supported to load", aiScene.mNumTextures());
@@ -72,7 +78,7 @@ public class Scene implements TextureRepository, MaterialReposibory {
         for(int i = 0; i < aiScene.mNumMaterials(); ++i)    {
             AIMaterial aiMaterial = AIMaterial.create(aiScene.mMaterials().get(i));
             logger.debug("handling material {}", i);
-            mMaterials[i] = new Material(aiMaterial,this);
+            mMaterials[i] = new Material(aiMaterial,this,program);
         }
 
         //handle meshes
@@ -88,9 +94,11 @@ public class Scene implements TextureRepository, MaterialReposibory {
 
 
     @Override
-    public int getTexture(String texturePath) {
-        if(mTextures.containsKey(texturePath))
-            return mTextures.get(texturePath);
+    public int getTexture(String texturePath, int uMapMode, int vMapMode) {
+        String textureKey = String.format("%d$%d%s", uMapMode, vMapMode, texturePath);
+        logger.debug("texture key is {}", textureKey);
+        if(mTextures.containsKey(textureKey))
+            return mTextures.get(textureKey);
         else    {
             logger.debug("Loading texture {}", texturePath);
             TextureLoader loader = new TextureLoader();
@@ -120,14 +128,15 @@ public class Scene implements TextureRepository, MaterialReposibory {
 
             glTexImage2D(GL_TEXTURE_2D,0, format,loader.getX(), loader.getY(),0,format,GL_UNSIGNED_BYTE,loader.getData());
             glGenerateMipmap(GL_TEXTURE_2D);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, uMapMode);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, vMapMode);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glBindTexture(GL_TEXTURE_2D,0);
             loader.release();
 
             //put the texture into the repository
-            mTextures.put(texturePath, textureVBO);
+            mTextures.put(textureKey, textureVBO);
             return textureVBO;
         }
 

@@ -15,6 +15,7 @@ import java.util.Map;
 import static org.lwjgl.opengl.GL33.*;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
+import static org.esipeng.opengl.base.engine.Const.MATERIAL_BINDING_POINT;
 
 public class Moxin extends OGLApplicationGL33 {
     private static final Logger logger = LoggerFactory.getLogger(Moxin.class);
@@ -41,9 +42,6 @@ public class Moxin extends OGLApplicationGL33 {
 
     @Override
     protected boolean applicationInitAfterContext() {
-        m_scene = new Scene();
-        if(!m_scene.loadSceneFromResource("nanosuit/nanosuit.obj"))
-            return false;
 
         try {
             m_program = compileAndLinkProgram(
@@ -54,6 +52,11 @@ public class Moxin extends OGLApplicationGL33 {
             e.printStackTrace();
             return false;
         }
+
+        m_scene = new Scene(m_program);
+
+        if(!m_scene.loadSceneFromResource("nanosuit/nanosuit.obj"))
+            return false;
 
         //mvp UBO
         m_mvpUBO = new UBOManager();
@@ -71,8 +74,16 @@ public class Moxin extends OGLApplicationGL33 {
             setUniform1i(m_program, entry.getKey(), entry.getValue());
         }
 
+        //bind material UBO to the binding point
+        int materialLocation = glGetUniformBlockIndex(m_program, "Material");
+        if(materialLocation == -1)  {
+            logger.error("Material uniform block not found!");
+        } else {
+            glUniformBlockBinding(m_program,materialLocation, MATERIAL_BINDING_POINT);
+        }
+
         m_camera = new Camera(m_window);
-        m_camera.enableMouseFpsView();
+        //m_camera.enableMouseFpsView();
 
         m_model = new Matrix4f();
         m_projection = new Matrix4f();
@@ -81,7 +92,7 @@ public class Moxin extends OGLApplicationGL33 {
         glDepthFunc(GL_LEQUAL);
         glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
 
-        enableFps(true);
+        //enableFps(true);
         return true;
     }
 
@@ -99,6 +110,11 @@ public class Moxin extends OGLApplicationGL33 {
                 (float)(m_width / m_height), 0.1f, 100.f);
 
         m_mvpUBO.setValue("projection", m_projection);
+
+        //update normal matrix
+        m_mvpUBO.setValue("normalMatrix",
+                m_camera.generateViewMat().mul(m_model).invert().transpose());
+
     }
 
     @Override

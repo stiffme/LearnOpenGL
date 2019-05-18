@@ -12,8 +12,13 @@ uniform mvp  {
 };
 
 out vec2 oTexCoord;
+out vec3 oFragCoord; //frag pos in view space
+out vec3 oNormal;   //normalized norm vector in view space
 
 void main() {
-    gl_Position = projection * view * model * vec4(aPos, 1.0f);
+    vec4 posInView = view * model * vec4(aPos, 1.0f);
+    oFragCoord = posInView.xyz;
     oTexCoord = aTexCoord;
+    oNormal = vec3(normalMatrix * vec4(aNormal, 0.0f));
+    gl_Position = projection * posInView;
 }
