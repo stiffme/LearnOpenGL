@@ -3,7 +3,7 @@ package org.esipeng.opengl.base.engine;
 
 import org.esipeng.opengl.base.UBOManager;
 import org.esipeng.opengl.base.engine.spi.TextureRepository;
-import org.joml.Vector3f;
+import org.joml.Vector4f;
 import org.lwjgl.assimp.AIColor4D;
 import org.lwjgl.assimp.AIMaterial;
 import org.lwjgl.assimp.AIString;
@@ -26,7 +26,7 @@ public class Material {
             SAMPLER_MAP.put(String.format("textures[%d]",i), i);
     }
 
-    private Vector3f[] mBaseColor;
+    private Vector4f[] mBaseColor;
     private Texture[][] textures;
     private int materialVBO;
     private float shininess;
@@ -34,11 +34,7 @@ public class Material {
     private boolean loaded = true;
 
     public Material(AIMaterial aiMaterial, TextureRepository textureRepository, int program) {
-
-//        colorAmbient = queryBaseColor(aiMaterial, AI_MATKEY_COLOR_AMBIENT);
-//        colorDiffuse = queryBaseColor(aiMaterial, AI_MATKEY_COLOR_DIFFUSE);
-//        colorSpecular= queryBaseColor(aiMaterial, AI_MATKEY_COLOR_SPECULAR);
-        mBaseColor = new Vector3f[STACK_SIZE];
+        mBaseColor = new Vector4f[STACK_SIZE];
 
         mBaseColor[AMBIENT_STACK] = queryBaseColor(aiMaterial, AI_MATKEY_COLOR_AMBIENT);
         mBaseColor[DIFFUSE_STACK] = queryBaseColor(aiMaterial, AI_MATKEY_COLOR_DIFFUSE);
@@ -98,14 +94,15 @@ public class Material {
         }
     }
 
-    private Vector3f queryBaseColor(AIMaterial aiMaterial, CharSequence aiMatKey)   {
+    private Vector4f queryBaseColor(AIMaterial aiMaterial, CharSequence aiMatKey)   {
         AIColor4D aiColor4D = AIColor4D.create();
-        Vector3f baseColor = new Vector3f(0.0f);
+        Vector4f baseColor = new Vector4f(0.0f);
         int ret = aiGetMaterialColor(aiMaterial, aiMatKey,aiTextureType_NONE,0, aiColor4D);
         if(ret == aiReturn_SUCCESS) {
             baseColor.x = aiColor4D.r();
             baseColor.y = aiColor4D.g();
             baseColor.z = aiColor4D.b();
+            baseColor.w = aiColor4D.a();
         }
         return baseColor;
     }
@@ -115,6 +112,7 @@ public class Material {
         AIString texturePath = AIString.create();
         int[] op = new int[1];
         float[] blend = new float[1];
+        blend[0] = 1.0f;
         int[] mapMode = new int[2];
         int ret = aiGetMaterialTexture(aiMaterial,textureType,index,texturePath,
                 null,null,blend,op,mapMode,null);
