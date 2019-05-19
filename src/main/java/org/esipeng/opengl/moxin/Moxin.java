@@ -34,6 +34,8 @@ public class Moxin extends OGLApplicationGL33 {
     private Matrix4f m_model, m_projection;
     private LightsManager lightsManager;
 
+    public String modelPath = "";
+
     @Override
     protected boolean applicationCreateContext() {
         m_window = glfwCreateWindow(m_width, m_height, "MoXin", NULL, NULL);
@@ -58,8 +60,14 @@ public class Moxin extends OGLApplicationGL33 {
 
         m_scene = new Scene(m_program);
 
-        if(!m_scene.loadSceneFromResource("nanosuit/nanosuit.obj"))
-            return false;
+        if(modelPath.length() != 0) {
+            if(!m_scene.loadScene(modelPath))
+                return false;
+        } else  {
+            if(!m_scene.loadSceneFromResource("nanosuit/nanosuit.obj"))
+                return false;
+        }
+
 
         //mvp UBO
         m_mvpUBO = new UBOManager();
@@ -100,11 +108,11 @@ public class Moxin extends OGLApplicationGL33 {
             return false;
 
 
-//        lightsManager.createDirectionalLight(
-//                new Vector3f(0.4f),
-//                new Vector3f(1.0f),
-//                new Vector3f(1.0f),
-//                new Vector3f(1.f,0.f,0.f));
+        lightsManager.createDirectionalLight(
+                new Vector3f(0.4f),
+                new Vector3f(1.0f),
+                new Vector3f(1.0f),
+                new Vector3f(1.f,0.f,0.f));
 
         lightsManager.createPointLight(
                 new Vector3f(0.4f),
@@ -130,7 +138,7 @@ public class Moxin extends OGLApplicationGL33 {
         m_camera.processInput(elapsed);
 
         //update mvp
-        m_model.identity().translate(0.f,-1.75f, 0.f).scale(0.2f);
+        m_model.identity().translate(0.f,-1.75f, 0.f).scale(0.3f);
         m_mvpUBO.setValue("model", m_model);
         Matrix4f viewMat = m_camera.generateViewMat();
         m_mvpUBO.setValue("view", viewMat);
@@ -163,7 +171,10 @@ public class Moxin extends OGLApplicationGL33 {
     }
 
     public static void main(String[] args)  {
-        OGLApplicationAbstract application = new Moxin();
+        Moxin application = new Moxin();
+        if(args.length > 0)
+            application.modelPath = args[0];
+
         application.run();
     }
 }
