@@ -20,7 +20,12 @@ public class Material {
     private static final Logger logger = LoggerFactory.getLogger(Material.class);
 
     public static final Map<String,Integer> SAMPLER_MAP = new HashMap<>();
+    private static Texture dummyTexture;
     static {
+        dummyTexture = new Texture();
+        dummyTexture.texBlend = 0;
+        dummyTexture.textOp = 0;
+        dummyTexture.textureVBO = 0;
         //texture uniform allocation
         for(int i = 0; i < STACK_SIZE * MAX_TEXTURE_PER_STACK; ++i)
             SAMPLER_MAP.put(String.format("textures[%d]",i), i);
@@ -118,7 +123,7 @@ public class Material {
                 null,null,blend,op,mapMode,null);
         if(ret != aiReturn_SUCCESS) {
             logger.warn("get texture path failed!");
-            return null;
+            return dummyTexture;
         }
 
         int uMapMode , vMapMode;
@@ -126,8 +131,11 @@ public class Material {
         vMapMode = mapAiMapModeToGL(mapMode[1]);
 
         int textureVBO = textureRepository.getTexture(texturePath.dataString(), uMapMode, vMapMode);
-        if(textureVBO == -1)
-            return null;
+        if(textureVBO == -1) {
+            //instead of returning null, return a dummy texture
+
+
+        }
 
         Texture texture = new Texture();
         texture.textureVBO = textureVBO;
