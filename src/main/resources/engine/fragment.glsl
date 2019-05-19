@@ -6,6 +6,11 @@ const int AMBIENT_STACK = 0;
 const int DIFFUSE_STACK = 1;
 const int SPECULAR_STACK = 2;
 
+const int MAX_LIGHT = 4;
+
+const int LIGHT_TYPE_DIR = 0;
+const int LIGHT_TYPE_POINT = 1;
+const int LIGHT_TYPE_SPOT = 2;
 /**
         aiTextureOp_Multiply  = 0x0,
         aiTextureOp_Add       = 0x1,
@@ -40,18 +45,26 @@ uniform Material {
 };
 
 struct LightStruct {
-    vec3 position; //position in view space
-    vec3 direction; //direction in view space
+    int lightSize;
+    vec3 position[MAX_LIGHT]; //position in view space
+    vec3 direction[MAX_LIGHT]; //direction in view space, normalized
 
-    int type;
+    int type[MAX_LIGHT];
 
-    float constant;
-    float linear;
-    float quadratic;
+    float constant[MAX_LIGHT];
+    float linear[MAX_LIGHT];
+    float quadratic[MAX_LIGHT];
 
-    vec3 ambient;
-    vec3 diffuse;
-    vec3 specular;
+    vec3 ambient[MAX_LIGHT];
+    vec3 diffuse[MAX_LIGHT];
+    vec3 specular[MAX_LIGHT];
+
+    float cutoff[MAX_LIGHT];
+    float outerCutoff[MAX_LIGHT];
+};
+
+uniform Lights  {
+    LightStruct lights;
 };
 
 in vec2 oTexCoord;
@@ -100,15 +113,103 @@ vec4 evaluateStack(int stackNumberLimit, int stackId) {
     return base;
 }
 
-/**
-lightDir: from frag to light, in view space
-**/
-vec4 CalculateAmbient()    {
-    vec4 matAmbient = evaluateStack(material.ambientSize, AMBIENT_STACK);
-    return vec4(1.0f);
+vec3 calculateDirectionalLightContribution(int index, vec3 mAmbient, vec3 mDiffuse, vec3 mSpecular, vec3 viewDir)   {
+    vec3 lightDir = -lights.direction[index];
+
+    //ambient
+    vec3 ambient = lights.ambient[index] * mAmbient;
+
+    //diffuse
+    float diff = max(dot(lightDir, oNormal), 0.0f);
+    vec3 diffuse = lights.diffuse[index] * diff * mDiffuse;
+
+    //specular
+    vec3 reflectDir = reflect(-lightDir, oNormal);
+    float spec = pow(max(dot(reflectDir, viewDir), 0.0f), material.shininess) * material.shininess_strength;
+    vec3 specular = lights.specular[index] * spec * mSpecular ;
+
+    return ambient + diffuse + specular;
 }
 
+vec3 calculatePointLightContribution(int index, vec3 mAmbient, vec3 mDiffuse, vec3 mSpecular, vec3 viewDir)   {
+    vec3 lightDir = normalize(lights.position[index] - oFragCoord);
+    float distance = length (lights.position[index] - oFragCoord);
+    float attenuation = 1.0f / (lights.constant[index] + distance * lights.linear[index]
+                                 + lights.quadratic[index] * distance * distance);
+
+    //ambient
+    vec3 ambient = lights.ambient[index] * mAmbient;
+
+    //diffuse
+    float diff = max(dot(lightDir, oNormal), 0.0);
+    vec3 diffuse = lights.diffuse[index] * diff * mDiffuse;
+
+    //specular
+    vec3 reflectDir = reflect(-lightDir, oNormal);
+    float spec = pow(max(dot(reflectDir, viewDir), 0.0), material.shininess) * material.shininess_strength;
+    vec3 specular = lights.specular[index] * spec * mSpecular;
+
+    return (ambient + diffuse + specular) * attenuation;
+}
+
+vec3 calculateSpotLightContribution(int index, vec3 mAmbient, vec3 mDiffuse, vec3 mSpecular, vec3 viewDir) {
+    vec3 lightDir = normalize(-oFragCoord);
+    float distance = length(oFragCoord);
+
+    float theta = dot(lightDir, -lights.direction[index]);
+    float intensity = clamp( (theta - lights.outerCutoff[index]) / (lights.cutoff[index] - lights.outerCutoff[index]),
+                    0.0f,
+                    1.0f);
+
+    float attenuation = 1.0f / (lights.constant[index] + distance * lights.linear[index]
+    + lights.quadratic[index] * distance * distance);
+
+    //amient
+    vec3 ambient = lights.ambient[index] * mAmbient;
+
+    //diffuse
+    float diff = max(dot(lightDir, oNormal), 0.0);
+    vec3 diffuse = lights.diffuse[index] * diff * mDiffuse;
+
+    //specular
+    vec3 reflectDir = reflect(-lightDir, oNormal);
+    float spec  = pow( max(dot(reflectDir, viewDir),0.0), material.shininess) * material.shininess_strength;
+    vec3 specular = lights.specular[index] * spec * mSpecular;
+
+    return (ambient + diffuse + specular) * intensity * attenuation;
+}
+
+
+
+vec3 calculateLight(vec3 mAmbient, vec3 mDiffuse, vec3 mSpecular)   {
+    vec3 color = vec3(0.0f);
+    vec3 viewDir = normalize(-oFragCoord); //from frag to view, view is at 0 in view space
+    for(int index = 0; index < lights.lightSize; ++index)   {
+        int lightType = lights.type[index];
+        switch(lightType)   {
+            case LIGHT_TYPE_DIR:
+            color += calculateDirectionalLightContribution(index, mAmbient, mDiffuse, mSpecular, viewDir);
+            break;
+            case LIGHT_TYPE_POINT:
+            color += calculatePointLightContribution(index, mAmbient, mDiffuse, mSpecular, viewDir);
+            break;
+            case LIGHT_TYPE_SPOT:
+            color += calculateSpotLightContribution(index, mAmbient, mDiffuse, mSpecular, viewDir);
+            break;
+            default:
+            break;
+        }
+    }
+    return color;
+}
+
+
+
+
 void main() {
-    //oColor = texture(textures[DIFFUSE_STACK * MAX_TEXTURE_PER_STACK + 0], oTexCoord);
-    oColor = evaluateStack(material.diffuseSize, DIFFUSE_STACK);
+    vec3 mAmbient = vec3(evaluateStack(material.ambientSize, AMBIENT_STACK));
+    vec3 mDiffuse = vec3(evaluateStack(material.diffuseSize, DIFFUSE_STACK));
+    vec3 mSpecular = vec3(evaluateStack(material.specularSize, SPECULAR_STACK));
+
+    oColor = vec4(calculateLight(mAmbient, mDiffuse, mSpecular),1.0f);
 }

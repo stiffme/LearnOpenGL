@@ -19,6 +19,6 @@ void main() {
     vec4 posInView = view * model * vec4(aPos, 1.0f);
     oFragCoord = posInView.xyz;
     oTexCoord = aTexCoord;
-    oNormal = vec3(normalMatrix * vec4(aNormal, 0.0f));
+    oNormal = normalize(vec3(normalMatrix * vec4(aNormal, 0.0f)));
     gl_Position = projection * posInView;
 }

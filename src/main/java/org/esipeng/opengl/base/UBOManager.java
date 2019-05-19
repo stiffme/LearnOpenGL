@@ -74,23 +74,30 @@ public class UBOManager {
 
             int byteSize = mapTypeToByteSize(uniformIndiceType);
 
-            UniformInformation uniformInformation = new UniformInformation(uniformIndiceOffset, byteSize);
-            logger.debug("Uniform {} offset {} size {}",uniformIndiceName,uniformIndiceOffset,byteSize);
-            m_indices.put(uniformIndiceName, uniformInformation);
-
             if(uniformIndiceSize > 1)   {
                 //this is an array
                 String arrayLeft = uniformIndiceName.substring(0, uniformIndiceName.lastIndexOf('[') +1);
                 String arrayRight = uniformIndiceName.substring(uniformIndiceName.lastIndexOf(']'));
-                for(int i = 1; i < uniformIndiceSize; ++i)  {
+                int arrayStride = glGetActiveUniformsi(program, indice, GL_UNIFORM_ARRAY_STRIDE);
+                if(arrayStride == -1 || arrayStride == 0)   {
+                    logger.error("Not an array! ");
+                    return false;
+                }
+                for(int i = 0; i < uniformIndiceSize; ++i)  {
                     String fullParameterName = arrayLeft + i + arrayRight;
-                    uniformInformation = new UniformInformation(uniformIndiceOffset + i * byteSize, byteSize);
-                    logger.debug("Uniform {} offset {} size {}", fullParameterName,
+                    UniformInformation uniformInformation = new UniformInformation(uniformIndiceOffset + i * arrayStride, byteSize);
+                    logger.debug("Uniform Array {} offset {} size {}", fullParameterName,
                             uniformInformation.blockOffset,
                             uniformInformation.blockSizeInBytes);
                     m_indices.put(fullParameterName, uniformInformation);
                 }
+            } else  {
+                UniformInformation uniformInformation = new UniformInformation(uniformIndiceOffset, byteSize);
+                logger.debug("Uniform {} offset {} size {}",uniformIndiceName,uniformIndiceOffset,byteSize);
+                m_indices.put(uniformIndiceName, uniformInformation);
             }
+
+
         }
 
         return true;

@@ -4,9 +4,11 @@ import org.esipeng.opengl.base.Camera;
 import org.esipeng.opengl.base.OGLApplicationAbstract;
 import org.esipeng.opengl.base.OGLApplicationGL33;
 import org.esipeng.opengl.base.UBOManager;
+import org.esipeng.opengl.base.engine.LightsManager;
 import org.esipeng.opengl.base.engine.Material;
 import org.esipeng.opengl.base.engine.Scene;
 import org.joml.Matrix4f;
+import org.joml.Vector3f;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +32,7 @@ public class Moxin extends OGLApplicationGL33 {
     private Camera m_camera;
 
     private Matrix4f m_model, m_projection;
+    private LightsManager lightsManager;
 
     @Override
     protected boolean applicationCreateContext() {
@@ -83,7 +86,7 @@ public class Moxin extends OGLApplicationGL33 {
         }
 
         m_camera = new Camera(m_window);
-        //m_camera.enableMouseFpsView();
+        m_camera.enableMouseFpsView();
 
         m_model = new Matrix4f();
         m_projection = new Matrix4f();
@@ -91,6 +94,32 @@ public class Moxin extends OGLApplicationGL33 {
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LEQUAL);
         glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
+
+        lightsManager = new LightsManager();
+        if(!lightsManager.init(m_program))
+            return false;
+
+
+//        lightsManager.createDirectionalLight(
+//                new Vector3f(0.4f),
+//                new Vector3f(1.0f),
+//                new Vector3f(1.0f),
+//                new Vector3f(1.f,0.f,0.f));
+
+        lightsManager.createPointLight(
+                new Vector3f(0.4f),
+                new Vector3f(1.0f),
+                new Vector3f(1.0f),
+                new Vector3f(0.f,0.f,8.f),
+                1.0f, 0.0f,0.0f);
+
+        lightsManager.createSpotLight(
+                new Vector3f(0.4f),
+                new Vector3f(1.0f),
+                new Vector3f(1.0f),
+                1.0f,0.0f,0.0f,
+                (float)Math.cos(Math.toRadians(12.5f)), (float)Math.cos(Math.toRadians(15.0f)));
+
 
         //enableFps(true);
         return true;
@@ -103,7 +132,10 @@ public class Moxin extends OGLApplicationGL33 {
         //update mvp
         m_model.identity().translate(0.f,-1.75f, 0.f).scale(0.2f);
         m_mvpUBO.setValue("model", m_model);
-        m_mvpUBO.setValue("view", m_camera.generateViewMat());
+        Matrix4f viewMat = m_camera.generateViewMat();
+        m_mvpUBO.setValue("view", viewMat);
+
+        lightsManager.updateAllLights(viewMat);
 
         //calculate perspective
         m_projection.identity().setPerspective(m_camera.getFovRadians(),
