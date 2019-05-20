@@ -13,7 +13,8 @@ import static org.lwjgl.glfw.GLFW.*;
 public abstract class OGLApplicationGL33 extends OGLApplicationAbstract {
     private static final Logger logger = LoggerFactory.getLogger(OGLApplicationGL33.class);
 
-    protected LinkedHashSet<Integer> m_vbos, m_vaos, m_shaders, m_programs, m_textures;
+    protected LinkedHashSet<Integer> m_vbos, m_vaos, m_shaders,
+            m_programs, m_textures, m_framebuffers, m_renderBuffer;
 
     public OGLApplicationGL33() {
         m_vaos = new LinkedHashSet<>();
@@ -21,6 +22,8 @@ public abstract class OGLApplicationGL33 extends OGLApplicationAbstract {
         m_shaders = new LinkedHashSet<>();
         m_programs = new LinkedHashSet<>();
         m_textures = new LinkedHashSet<>();
+        m_framebuffers = new LinkedHashSet<>();
+        m_renderBuffer = new LinkedHashSet<>();
     }
 
     protected int linkProgram(int vShader, int fShader)    {
@@ -73,8 +76,15 @@ public abstract class OGLApplicationGL33 extends OGLApplicationAbstract {
         m_vbos.forEach(GL33::glDeleteBuffers);
         m_vaos.forEach(GL33::glDeleteVertexArrays);
         m_textures.forEach(GL33::glDeleteTextures);
+        m_framebuffers.forEach(GL33::glDeleteFramebuffers);
+        m_renderBuffer.forEach(GL33::glDeleteRenderbuffers);
     }
 
+    protected int getManagedRenderBuffer()  {
+        int rbo = glGenRenderbuffers();
+        m_renderBuffer.add(rbo);
+        return rbo;
+    }
 
     protected int getManagedVBO()  {
         int vbo = glGenBuffers();
@@ -92,6 +102,12 @@ public abstract class OGLApplicationGL33 extends OGLApplicationAbstract {
         int texture = glGenTextures();
         m_textures.add(texture);
         return texture;
+    }
+
+    protected int getManagedFramebuffer()   {
+        int framebuffer = glGenFramebuffers();
+        m_framebuffers.add(framebuffer);
+        return framebuffer;
     }
 
     @Override
