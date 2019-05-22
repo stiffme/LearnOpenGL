@@ -211,16 +211,11 @@ void main() {
     vec3 mAmbient = vec3(evaluateStack(material.ambientSize, AMBIENT_STACK));
     vec3 mDiffuse = vec3(evaluateStack(material.diffuseSize, DIFFUSE_STACK));
     vec3 mSpecular = vec3(evaluateStack(material.specularSize, SPECULAR_STACK));
-    vec4 OColor = vec4(calculateLight(mAmbient, mDiffuse, mSpecular),1.0f) ;
 
+    float ratio = 1.00 / 2.42;
     vec3 I = normalize(oFragCoord );
-    vec3 R = reflect(I, oNormal);
-
-    if(material.ambientSize == 1)   {
-        mAmbient = vec3(texture(textures[0], oTexCoord));
-    }
-
-    vec3 RColor = vec3(texture(skybox, R));
-
-    oColor = vec4(RColor * mAmbient, 1.0) + OColor;
+    vec3 R = refract(I, oNormal, ratio);
+    vec4 RColor = vec4(texture(skybox, R).rgb, 1.0);
+    vec4 OColor = vec4(calculateLight(mAmbient, mDiffuse, mSpecular),1.0f) ;
+    oColor = mix(RColor, OColor, 0.01);
 }

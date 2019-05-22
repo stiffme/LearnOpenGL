@@ -17,7 +17,7 @@ public class SkyBoxTesting extends OGLApplicationGL33 {
     private static final int SKYBOX_TEXTURE_ID = 30;
     int mWidth = 800, mHeight = 800;
     long mWindow;
-    int mProgramSkybox, mSkyboxVAO, mProgramReflect;
+    int mProgramSkybox, mSkyboxVAO, mProgramReflect, mProgramRefract;
     int mSkyboxTexture;
     Camera mCamera;
     Matrix4f mModel, mProjection;
@@ -59,11 +59,19 @@ public class SkyBoxTesting extends OGLApplicationGL33 {
                     "advanced/skybox/fReflect.glsl"
             );
 
+            mProgramRefract = compileAndLinkProgram(
+                    "advanced/skybox/vEngine.glsl",
+                    "advanced/skybox/fRefract.glsl"
+            );
+
             mScene = new Scene(mProgramReflect);
-            if(!mScene.loadSceneFromResource("nanosuit/nanosuit.obj"))
+            if(!mScene.loadSceneFromResource("nanosuitRef/nanosuit.obj"))
                 return false;
 
             if(!mScene.bindProgram(mProgramReflect))
+                return false;
+
+            if(!mScene.bindProgram(mProgramRefract))
                 return false;
 
         } catch (Exception e)   {
@@ -126,8 +134,10 @@ public class SkyBoxTesting extends OGLApplicationGL33 {
         glBindBuffer(GL_ARRAY_BUFFER,0);
         glBindVertexArray(0);
 
-        if(!setUniform1i(mProgramSkybox, "skybox", SKYBOX_TEXTURE_ID))
-            return false;
+        setUniform1i(mProgramSkybox, "skybox", SKYBOX_TEXTURE_ID);
+        setUniform1i(mProgramReflect,"skybox", SKYBOX_TEXTURE_ID);
+
+        setUniform1i(mProgramRefract,"skybox", SKYBOX_TEXTURE_ID);
 
         mCamera = new Camera(mWindow);
         mModel = new Matrix4f();
@@ -145,8 +155,16 @@ public class SkyBoxTesting extends OGLApplicationGL33 {
             return false;
         glUniformBlockBinding(mProgramReflect,mvpLoc, MVP_BINDING_POINT);
 
+        mvpLoc = glGetUniformBlockIndex(mProgramRefract,"mvp");
+        if(mvpLoc == -1)
+            return false;
+        glUniformBlockBinding(mProgramRefract,mvpLoc, MVP_BINDING_POINT);
+
         lightsManager = new LightsManager();
         if(!lightsManager.init(mProgramReflect))
+            return false;
+
+        if(!lightsManager.init(mProgramRefract))
             return false;
 
         lightsManager.createDirectionalLight(
@@ -207,6 +225,8 @@ public class SkyBoxTesting extends OGLApplicationGL33 {
         glUseProgram(mProgramReflect);
         glDepthMask(true);
         mScene.draw();
+
+        glFinish();
     }
 
     private int loadCubeTexture(String[] faces) {
