@@ -16,6 +16,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import static org.esipeng.opengl.base.engine.Const.MATERIAL_BINDING_POINT;
 import static org.lwjgl.opengl.GL33.*;
 import static org.lwjgl.assimp.Assimp.*;
 public class Scene implements TextureRepository, MaterialReposibory {
@@ -28,10 +29,95 @@ public class Scene implements TextureRepository, MaterialReposibory {
     MeshNode mRoot;
     int mProgram;
 
+    /**
+     *
+     * application class is responsible for updating mvp uniform block:
+     * uniform mvp  {
+     *     mat4 model;
+     *     mat4 view;
+     *     mat4 projection;
+     *     mat4 normalMatrix; //convert normal from model space to view space, should be (view * model).inverse().transpose()
+     * };
+     *
+     * scene is responsible updating material uniform:
+     * struct MaterialStruct {
+     *     vec4 baseColor[STACK_SIZE];
+     *     int ambientSize;
+     *     int diffuseSize;
+     *     int specularSize;
+     *     float shininess;
+     *     float shininess_strength;
+     *     float texBlend[STACK_SIZE * MAX_TEXTURE_PER_STACK];
+     *     int texOp[STACK_SIZE * MAX_TEXTURE_PER_STACK];
+     * };
+     *
+     * uniform Material {
+     *     MaterialStruct material;
+     * };
+     *
+     * scene is responsible updating for vertices
+     *
+     * LightManager is responsible for updating the light structure
+     * struct LightStruct {
+     *     int lightSize;
+     *     vec3 position[MAX_LIGHT]; //position in view space
+     *     vec3 direction[MAX_LIGHT]; //direction in view space, normalized
+     *
+     *     int type[MAX_LIGHT];
+     *
+     *     float constant[MAX_LIGHT];
+     *     float linear[MAX_LIGHT];
+     *     float quadratic[MAX_LIGHT];
+     *
+     *     vec3 ambient[MAX_LIGHT];
+     *     vec3 diffuse[MAX_LIGHT];
+     *     vec3 specular[MAX_LIGHT];
+     *
+     *     float cutoff[MAX_LIGHT];
+     *     float outerCutoff[MAX_LIGHT];
+     * };
+     *
+     * uniform Lights  {
+     *     LightStruct lights;
+     * };
+     *
+     *
+     */
     public Scene(int program)   {
         mProgram = program;
     }
 
+    public boolean bindProgram(int program) {
+
+        //set texture uniform
+        for(Map.Entry<String,Integer> entry : Material.SAMPLER_MAP.entrySet()) {
+            logger.debug("Setting sampler uniform {} -> {}", entry.getKey(), entry.getValue());
+            if(!setUniform1i(program, entry.getKey(), entry.getValue()))
+                return false;
+        }
+
+        int materialLocation = glGetUniformBlockIndex(program, "Material");
+        if(materialLocation == -1)  {
+            logger.error("Material uniform block not found!");
+            return false;
+        } else {
+            glUniformBlockBinding(program,materialLocation, MATERIAL_BINDING_POINT);
+        }
+        return true;
+    }
+
+
+    //convinient function
+    protected boolean setUniform1i(int program, String uniform, int value)   {
+        int uniformLoc = glGetUniformLocation(program,uniform);
+        if(uniformLoc == -1)    {
+            logger.warn("Uniform {} not set for {}", uniform, value);
+            return false;
+        }
+        glUseProgram(program);
+        glUniform1i(uniformLoc, value);
+        return true;
+    }
 
     public boolean loadSceneFromResource(String resourcePath)   {
         try {

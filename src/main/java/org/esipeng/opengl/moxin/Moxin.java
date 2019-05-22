@@ -79,19 +79,20 @@ public class Moxin extends OGLApplicationGL33 {
         //bind the block index to the binding point
         glUniformBlockBinding(m_program, m_mvpUBO.getBlockIndex(), MVP_BINDING_POINT);
 
-        //set texture uniform
-        for(Map.Entry<String,Integer> entry : Material.SAMPLER_MAP.entrySet()) {
-            logger.debug("Setting sampler uniform {} -> {}", entry.getKey(), entry.getValue());
-            setUniform1i(m_program, entry.getKey(), entry.getValue());
-        }
-
-        //bind material UBO to the binding point
-        int materialLocation = glGetUniformBlockIndex(m_program, "Material");
-        if(materialLocation == -1)  {
-            logger.error("Material uniform block not found!");
-        } else {
-            glUniformBlockBinding(m_program,materialLocation, MATERIAL_BINDING_POINT);
-        }
+//        //set texture uniform
+//        for(Map.Entry<String,Integer> entry : Material.SAMPLER_MAP.entrySet()) {
+//            logger.debug("Setting sampler uniform {} -> {}", entry.getKey(), entry.getValue());
+//            setUniform1i(m_program, entry.getKey(), entry.getValue());
+//        }
+//
+//        //bind material UBO to the binding point
+//        int materialLocation = glGetUniformBlockIndex(m_program, "Material");
+//        if(materialLocation == -1)  {
+//            logger.error("Material uniform block not found!");
+//        } else {
+//            glUniformBlockBinding(m_program,materialLocation, MATERIAL_BINDING_POINT);
+//        }
+        m_scene.bindProgram(m_program);
 
         m_camera = new Camera(m_window);
         m_camera.enableMouseFpsView();
@@ -106,7 +107,6 @@ public class Moxin extends OGLApplicationGL33 {
         lightsManager = new LightsManager();
         if(!lightsManager.init(m_program))
             return false;
-
 
         lightsManager.createDirectionalLight(
                 new Vector3f(0.4f),
