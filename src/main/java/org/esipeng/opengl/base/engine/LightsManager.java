@@ -14,17 +14,25 @@ public class LightsManager {
     private UBOManager uboManager;
     private int lightIndex = 0;
     private BasicLight[] lights = new BasicLight[MAX_LIGHT];
-    public boolean init(int program)    {
-        int vbo = glGenBuffers();
-        uboManager = new UBOManager();
-        if(! uboManager.attachUniformBlock(program, "Lights", vbo))
-            return false;
 
-        //bind buffer
-        glBindBufferBase(GL_UNIFORM_BUFFER, LIGHT_BINDING_POINT, vbo);
-        glUniformBlockBinding(program, uboManager.getBlockIndex(), LIGHT_BINDING_POINT);
+    public boolean bindProgram(int program)    {
+        if(uboManager == null)  {
+            int vbo = glGenBuffers();
+            uboManager = new UBOManager();
+            if(! uboManager.attachUniformBlock(program, "Lights", vbo))
+                return false;
 
-        updateLightSize();
+            //bind buffer
+            glBindBufferBase(GL_UNIFORM_BUFFER, LIGHT_BINDING_POINT, vbo);
+            glUniformBlockBinding(program, uboManager.getBlockIndex(), LIGHT_BINDING_POINT);
+            updateLightSize();
+        } else  {
+            int uniformBlockLoc = glGetUniformBlockIndex(program, "Lights");
+            if(uniformBlockLoc == -1)
+                return false;
+
+            glUniformBlockBinding(program, uniformBlockLoc, LIGHT_BINDING_POINT);
+        }
         return true;
     }
 

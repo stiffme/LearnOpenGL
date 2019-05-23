@@ -200,7 +200,7 @@ public class MatierialsExe extends OGLApplicationGL33 {
         glVertexAttribPointer(0,3,GL_FLOAT,false, Float.BYTES * 6, 0L );
         glEnableVertexAttribArray(0);
 
-        //init camera
+        //bindProgram camera
         m_camera = new Camera(
                 0.0f,0.0f,13.0f,
                 0.0f,0.0f,-1.0f,

@@ -2,6 +2,7 @@ package org.esipeng.opengl.advanced;
 
 import org.esipeng.opengl.base.*;
 import org.esipeng.opengl.base.engine.LightsManager;
+import org.esipeng.opengl.base.engine.MVPManager;
 import org.esipeng.opengl.base.engine.Scene;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -11,7 +12,7 @@ import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class SkyBoxTesting extends OGLApplicationGL33 {
-    private static final int MVP_BINDING_POINT = 2;
+    //private static final int MVP_BINDING_POINT = 2;
     private static final int SKYBOX_TEXTURE_ID = 30;
     int mWidth = 800, mHeight = 800;
     long mWindow;
@@ -19,7 +20,7 @@ public class SkyBoxTesting extends OGLApplicationGL33 {
     int mSkyboxTexture;
     Camera mCamera;
     Matrix4f mModel, mProjection;
-    UBOManager mvpManager;
+    MVPManager mvpManager;
     Scene mScene;
     LightsManager lightsManager;
 
@@ -141,22 +142,13 @@ public class SkyBoxTesting extends OGLApplicationGL33 {
         mModel = new Matrix4f();
         mProjection = new Matrix4f();
 
-        mvpManager = new UBOManager();
-        int ubo = getManagedVBO();
-        if(!mvpManager.attachUniformBlock(mProgramSkybox,"mvp",ubo))
+        mvpManager = new MVPManager();
+        if(!mvpManager.bindProgram(mProgramSkybox))
             return false;
-        glBindBufferBase(GL_UNIFORM_BUFFER, MVP_BINDING_POINT, ubo);
-        glUniformBlockBinding(mProgramSkybox, mvpManager.getBlockIndex(), MVP_BINDING_POINT);
-
-        int mvpLoc = glGetUniformBlockIndex(mProgramReflect,"mvp");
-        if(mvpLoc == -1)
+        if(!mvpManager.bindProgram(mProgramReflect))
             return false;
-        glUniformBlockBinding(mProgramReflect,mvpLoc, MVP_BINDING_POINT);
-
-        mvpLoc = glGetUniformBlockIndex(mProgramRefract,"mvp");
-        if(mvpLoc == -1)
+        if(!mvpManager.bindProgram(mProgramRefract))
             return false;
-        glUniformBlockBinding(mProgramRefract,mvpLoc, MVP_BINDING_POINT);
 
         lightsManager = new LightsManager();
         if(!lightsManager.bindProgram(mProgramReflect))
@@ -204,10 +196,10 @@ public class SkyBoxTesting extends OGLApplicationGL33 {
         mModel.identity();
         mProjection.setPerspective(mCamera.getFovRadians(),(float)mWidth/mHeight, 0.1f, 100.0f);
         Matrix4f view = mCamera.generateViewMat();
-        mvpManager.setValue("model", mModel);
-        mvpManager.setValue("view", view);
+        mvpManager.updateModel( mModel);
+        mvpManager.updateView(view);
         lightsManager.updateAllLights(view);
-        mvpManager.setValue("projection", mProjection);
+        mvpManager.updateProjection(mProjection);
 
 
         glUseProgram(mProgramSkybox);
@@ -218,8 +210,8 @@ public class SkyBoxTesting extends OGLApplicationGL33 {
         glBindVertexArray(0);
 
         mModel.identity().translate(0.f,-1.75f, 0.f).scale(0.2f);
-        mvpManager.setValue("model", mModel);
-        mvpManager.setValue("normalMatrix", view.mul(mModel).invert().transpose());
+        mvpManager.updateModel(mModel);
+        mvpManager.updateNormalInView();
         glUseProgram(mProgramReflect);
         glDepthMask(true);
         mScene.draw();

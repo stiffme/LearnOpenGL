@@ -1,23 +1,18 @@
 package org.esipeng.opengl.moxin;
 
 import org.esipeng.opengl.base.Camera;
-import org.esipeng.opengl.base.OGLApplicationAbstract;
 import org.esipeng.opengl.base.OGLApplicationGL33;
 import org.esipeng.opengl.base.UBOManager;
 import org.esipeng.opengl.base.engine.LightsManager;
-import org.esipeng.opengl.base.engine.Material;
 import org.esipeng.opengl.base.engine.Scene;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
-
 import static org.lwjgl.opengl.GL33.*;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
-import static org.esipeng.opengl.base.engine.Const.MATERIAL_BINDING_POINT;
 
 public class Moxin extends OGLApplicationGL33 {
     private static final Logger logger = LoggerFactory.getLogger(Moxin.class);
@@ -105,7 +100,7 @@ public class Moxin extends OGLApplicationGL33 {
         glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
 
         lightsManager = new LightsManager();
-        if(!lightsManager.init(m_program))
+        if(!lightsManager.bindProgram(m_program))
             return false;
 
         lightsManager.createDirectionalLight(

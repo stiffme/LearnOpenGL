@@ -13,7 +13,7 @@ import static org.lwjgl.system.MemoryUtil.NULL;
 
 public abstract class OGLApplicationAbstract {
 
-    // init() --> applicationInit() --> loop() ;
+    // bindProgram() --> applicationInit() --> loop() ;
     //            createContext() ----> update/draw
 
     private boolean m_fpsEnabled = false;
@@ -25,13 +25,13 @@ public abstract class OGLApplicationAbstract {
 
     public final void run()   {
         if(!init()) {
-            System.out.println("init failed");
+            System.out.println("bindProgram failed");
             return;
         }
         glfwSwapInterval(1);
 
         if(!applicationInit())  {
-            System.out.println("application init fail");
+            System.out.println("application bindProgram fail");
             glfwTerminate();
             return;
         }

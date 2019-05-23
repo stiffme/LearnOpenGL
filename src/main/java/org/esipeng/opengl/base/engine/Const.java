@@ -53,4 +53,15 @@ public class Const {
      * };
      */
     public static final int LIGHT_BINDING_POINT = 10;
+
+
+    /**
+     * uniform mvp  {
+     *     mat4 model;
+     *     mat4 view;
+     *     mat4 projection;
+     *     mat4 normalMatrix; //convert normal from model space to view space, should be (view * model).inverse().transpose()
+     * };
+     */
+    public static final int MVP_BINDING_POINT = 11;
 }
