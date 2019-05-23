@@ -9,8 +9,6 @@ import org.joml.Vector3f;
 import static org.lwjgl.opengl.GL33.*;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
-import static org.lwjgl.stb.STBImage.*;
-import static org.esipeng.opengl.base.engine.Const.*;
 
 public class SkyBoxTesting extends OGLApplicationGL33 {
     private static final int MVP_BINDING_POINT = 2;
@@ -161,10 +159,10 @@ public class SkyBoxTesting extends OGLApplicationGL33 {
         glUniformBlockBinding(mProgramRefract,mvpLoc, MVP_BINDING_POINT);
 
         lightsManager = new LightsManager();
-        if(!lightsManager.init(mProgramReflect))
+        if(!lightsManager.bindProgram(mProgramReflect))
             return false;
 
-        if(!lightsManager.init(mProgramRefract))
+        if(!lightsManager.bindProgram(mProgramRefract))
             return false;
 
         lightsManager.createDirectionalLight(
