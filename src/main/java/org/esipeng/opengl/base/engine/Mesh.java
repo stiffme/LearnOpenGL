@@ -19,6 +19,10 @@ public class Mesh {
     private int mNumberOfIndices;
     private Material mMaterial;
 
+    public int getmVAO() {
+        return mVAO;
+    }
+
     public Mesh(AIMesh aiMesh, MaterialReposibory materialReposibory)  {
         mVBO = glGenBuffers();
         mVAO = glGenVertexArrays();
@@ -102,6 +106,17 @@ public class Mesh {
         //bind VAO
         glBindVertexArray(mVAO);
         glDrawElements(GL_TRIANGLES, mNumberOfIndices, GL_UNSIGNED_INT, 0L);
+        glBindVertexArray(0);
+    }
+
+
+    public void drawInstanced(int nrInstance)  {
+        //bind material
+        mMaterial.bindMaterial();
+
+        //bind VAO
+        glBindVertexArray(mVAO);
+        glDrawElementsInstanced(GL_TRIANGLES, mNumberOfIndices, GL_UNSIGNED_INT, 0L,nrInstance);
         glBindVertexArray(0);
     }
 

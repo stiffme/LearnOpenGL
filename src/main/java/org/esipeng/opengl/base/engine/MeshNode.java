@@ -20,4 +20,20 @@ public class MeshNode {
             child.draw();
     }
 
+    public void drawInstanced(int nrInstances) {
+        for(Mesh mesh : meshes) {
+            mesh.drawInstanced(nrInstances);
+        }
+
+        for(MeshNode child : children)
+            child.drawInstanced(nrInstances);
+    }
+
+    public List<Mesh> getMeshes() {
+        return meshes;
+    }
+
+    public List<MeshNode> getChildren() {
+        return children;
+    }
 }

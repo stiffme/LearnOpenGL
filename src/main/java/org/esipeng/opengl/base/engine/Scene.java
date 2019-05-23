@@ -228,8 +228,16 @@ public class Scene implements TextureRepository, MaterialReposibory {
 
     }
 
+    public MeshNode getRoot()   {
+        return mRoot;
+    }
+
     public void draw()    {
         mRoot.draw();
+    }
+
+    public void drawInstanced(int nrInstances)   {
+        mRoot.drawInstanced(nrInstances);
     }
 
 
