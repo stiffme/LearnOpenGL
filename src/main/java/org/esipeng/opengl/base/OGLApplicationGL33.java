@@ -144,6 +144,17 @@ public abstract class OGLApplicationGL33 extends OGLApplicationAbstract {
         return true;
     }
 
+    protected boolean setUniform3f(int program, String uniform, float v1, float v2, float v3)   {
+        int uniformLoc = glGetUniformLocation(program,uniform);
+        if(uniformLoc == -1)    {
+            logger.warn("Uniform {} not set for {} {} {}", uniform, v1, v2, v3);
+            return false;
+        }
+        glUseProgram(program);
+        glUniform3f(uniformLoc, v1, v2, v3);
+        return true;
+    }
+
 
     protected void frameBufferSizeChanged(long window, int width, int height)   {
         glViewport(0,0,width,height);
