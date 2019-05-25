@@ -75,4 +75,8 @@ public class MVPManager {
         normalMatrix.invert().transpose();
         uboManager.setValue(NORMALMATRIX, normalMatrix);
     }
+
+    public UBOManager getUboManager()   {
+        return uboManager;
+    }
 }
