@@ -3,12 +3,15 @@ package org.esipeng.opengl.base;
 import org.lwjgl.glfw.GLFWFramebufferSizeCallback;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.opengl.GL33;
+import org.lwjgl.opengl.GLCapabilities;
+import org.lwjgl.opengl.GLDebugMessageARBCallback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.LinkedHashSet;
 import static org.lwjgl.opengl.GL33.*;
 import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.opengl.ARBDebugOutput.*;
 
 public abstract class OGLApplicationGL33 extends OGLApplicationAbstract {
     private static final Logger logger = LoggerFactory.getLogger(OGLApplicationGL33.class);
@@ -148,6 +151,7 @@ public abstract class OGLApplicationGL33 extends OGLApplicationAbstract {
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, 1);
 
         if(!applicationCreateContext())
             return false;
@@ -207,6 +211,34 @@ public abstract class OGLApplicationGL33 extends OGLApplicationAbstract {
         glUseProgram(program);
         glUniformMatrix4fv(uniformLoc,false, data);
         return true;
+    }
+
+    public void enableDebug()   {
+        GLCapabilities capabilities = GL.getCapabilities();
+        if(capabilities.GL_ARB_debug_output)    {
+            logger.debug("Debug supported!");
+            glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
+            glDebugMessageCallbackARB(new GLDebugMessageARBCallback() {
+                @Override
+                public void invoke(int source, int type, int id, int severity, int length, long message, long userParam) {
+                    String strMsg = getMessage(length,message);
+                    switch (severity)   {
+                        case GL_DEBUG_SEVERITY_HIGH_ARB:
+                            logger.error(strMsg);
+                            break;
+                        case GL_DEBUG_SEVERITY_MEDIUM_ARB:
+                            logger.warn(strMsg);
+                            break;
+                        case GL_DEBUG_SEVERITY_LOW_ARB:
+                            logger.info(strMsg);
+                            break;
+                        default:
+                            logger.info(strMsg);
+                            break;
+                    }
+                }
+            }, 0L);
+        }
     }
 
     protected void frameBufferSizeChanged(long window, int width, int height)   {

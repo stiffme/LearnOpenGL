@@ -59,6 +59,7 @@ public class DepthMapPoint extends OGLApplicationGL33 {
     @Override
     protected boolean applicationInitAfterContext() {
         lightPos = new Vector3f(0f,0f,0f);
+        this.enableDebug();
         try {
             mShader = compileAndLinkProgram(
                     "advanced/depthmap/point/vShadowMapping.glsl",
@@ -408,7 +409,7 @@ public class DepthMapPoint extends OGLApplicationGL33 {
     }
 
     public static void main(String[] args)  {
-        OGLApplicationAbstract application = new DepthMapPoint();
+        OGLApplicationGL33 application = new DepthMapPoint();
         application.run();
     }
 }
