@@ -19,17 +19,21 @@ import static org.lwjgl.system.MemoryUtil.NULL;
 public class DepthMapPoint extends OGLApplicationGL33 {
     private static final Logger logger = LoggerFactory.getLogger(DepthMapPoint.class);
     private static final int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
-    int mWidth = 800, mHeight = 600, mPlaneVAO, mQuardVAO, mCubeVAO;
+
+    private static final int WOOD_TEXTURE = 1;
+    private static final int CUBE_DEPTH_TEXTURE = 2;
+
+    int mWidth = 800, mHeight = 600, mCubeVAO;
     long mWindow;
     int mSimpleDepthShader, mDebugDepthQuad, mShader;
     Vector3f mLightPos;
     int mWoodTexture, mDepthMapFBO, mTextureDepthMap;
     Camera mCamera;
     MVPManager mvpManager;
-    Matrix4f tempMat = new Matrix4f(), lightProjection = new Matrix4f();
-    Matrix4f lightView = new Matrix4f(), lightSpaceMatrix = new Matrix4f();
+    Matrix4f tempMat = new Matrix4f();
     Vector4f tempVec4 = new Vector4f();
     Vector3f tempVec3 = new Vector3f();
+    Vector3f lightPos = new Vector3f(0.0f);
 
     @Override
     protected boolean applicationCreateContext() {
@@ -51,84 +55,27 @@ public class DepthMapPoint extends OGLApplicationGL33 {
 
     @Override
     protected boolean applicationInitAfterContext() {
+        mLightPos = new Vector3f(0f,0f,0f);
         try {
-            mSimpleDepthShader = compileAndLinkProgram(
-                    "advanced/depthmap/vShadowMappingDepth.glsl",
-                    "advanced/depthmap/fShadowMappingDepth.glsl"
-            );
-            mvpManager = new MVPManager();
-            if(!mvpManager.bindProgram(mSimpleDepthShader))
-                return false;
-
-            mDebugDepthQuad = compileAndLinkProgram(
-                    "advanced/depthmap/vDebugQuard.glsl",
-                    "advanced/depthmap/fDebugQuard.glsl"
-            );
-
             mShader = compileAndLinkProgram(
                     "advanced/depthmap/point/vShadowMapping.glsl",
                     "advanced/depthmap/point/fShadowMapping.glsl"
             );
 
+            mvpManager = new MVPManager();
+
             if(!mvpManager.bindProgram(mShader))
                 return false;
 
-            if(!setUniform1i(mShader,"floorTexture", 2))
+            if(!setUniform1i(mShader,"floorTexture", WOOD_TEXTURE))
                 return false;
 
-//            if(!setUniform1i(mShader,"shadowMap", 1))
-//                return false;
+            setUniform3f(mShader,"lightPos", lightPos.x, lightPos.y, lightPos.z);
 
         } catch (Exception e)   {
             e.printStackTrace();
             return false;
         }
-
-        float[] planeVertices = {
-                // Positions          // Normals         // Texture Coords
-                25.0f, -0.5f, 25.0f, 0.0f, 1.0f, 0.0f, 25.0f, 0.0f,
-                -25.0f, -0.5f, -25.0f, 0.0f, 1.0f, 0.0f, 0.0f, 25.0f,
-                -25.0f, -0.5f, 25.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
-
-                25.0f, -0.5f, 25.0f, 0.0f, 1.0f, 0.0f, 25.0f, 0.0f,
-                25.0f, -0.5f, -25.0f, 0.0f, 1.0f, 0.0f, 25.0f, 25.0f,
-                - 25.0f, -0.5f, -25.0f, 0.0f, 1.0f, 0.0f, 0.0f, 25.0f
-        };
-
-        //Setup plane VAO
-        mPlaneVAO = getManagedVAO();
-        int vbo = getManagedVBO();
-        glBindVertexArray(mPlaneVAO);
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferData(GL_ARRAY_BUFFER,planeVertices,GL_STATIC_DRAW);
-        glVertexAttribPointer(0,3,GL_FLOAT,false,Float.BYTES*8,0L);
-        glVertexAttribPointer(1,3,GL_FLOAT,false,Float.BYTES*8,Float.BYTES *3);
-        glVertexAttribPointer(2,2,GL_FLOAT,false,Float.BYTES*8,Float.BYTES *6);
-        glEnableVertexAttribArray(0);
-        glEnableVertexAttribArray(1);
-        glEnableVertexAttribArray(2);
-        glBindBuffer(GL_ARRAY_BUFFER,0);
-        glBindVertexArray(0);
-
-        //quard VAO
-        float[] quadVertices = {
-                // Positions        // Texture Coords
-                -1.0f,  1.0f, 0.0f,  0.0f, 1.0f,
-                -1.0f, -1.0f, 0.0f,  0.0f, 0.0f,
-                1.0f,  1.0f, 0.0f,  1.0f, 1.0f,
-                1.0f, -1.0f, 0.0f,  1.0f, 0.0f,
-        };
-        mQuardVAO = getManagedVAO();
-        glBindVertexArray(mQuardVAO);
-        vbo = getManagedVBO();
-        glBindBuffer(GL_ARRAY_BUFFER,vbo);
-        glBufferData(GL_ARRAY_BUFFER,quadVertices,GL_STATIC_DRAW);
-        glVertexAttribPointer(0,3,GL_FLOAT,false,Float.BYTES * 5, 0L);
-        glVertexAttribPointer(1,2,GL_FLOAT,false,Float.BYTES * 5, Float.BYTES * 3);
-        glEnableVertexAttribArray(0);
-        glEnableVertexAttribArray(1);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
 
         //cube VAO
         float[] cubeVertices = {
@@ -177,7 +124,7 @@ public class DepthMapPoint extends OGLApplicationGL33 {
         };
 
         mCubeVAO = getManagedVAO();
-        vbo = getManagedVBO();
+        int vbo = getManagedVBO();
         glBindVertexArray(mCubeVAO);
         glBindBuffer(GL_ARRAY_BUFFER,vbo);
         glBufferData(GL_ARRAY_BUFFER,cubeVertices,GL_STATIC_DRAW);
@@ -190,7 +137,7 @@ public class DepthMapPoint extends OGLApplicationGL33 {
         glBindBuffer(GL_ARRAY_BUFFER,0);
         glBindVertexArray(0);
 
-        mLightPos = new Vector3f(0f,0f,0f);
+
         mWoodTexture = loadTextureFromResource("advanced/lighting/wood.png");
         if(mWoodTexture == -1)
             return false;
@@ -248,19 +195,18 @@ public class DepthMapPoint extends OGLApplicationGL33 {
         Matrix4f view = mCamera.generateViewMat();
         mvpManager.updateView(view);
 
-        //update light pos
-        tempVec4.set(mLightPos,1.0f).mul(view);
-        setUniform3f(mShader,"lightPos", tempVec4.x, tempVec4.y, tempVec4.z);
     }
 
     @Override
     protected void draw() {
         glUseProgram(mShader);
-        glActiveTexture(GL_TEXTURE2);
+        glActiveTexture(GL_TEXTURE0 + WOOD_TEXTURE);
         glBindTexture(GL_TEXTURE_2D,this.mWoodTexture);
-        glActiveTexture(GL_TEXTURE1);
+        glActiveTexture(GL_TEXTURE0 + CUBE_DEPTH_TEXTURE);
         glBindTexture(GL_TEXTURE_2D, this.mTextureDepthMap);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        float[] viewPos = mCamera.getCameraPos();
+        setUniform3f(mShader,"viewPos",viewPos[0],viewPos[1],viewPos[2]);
         renderScene(mShader);
 
     }
@@ -291,12 +237,6 @@ public class DepthMapPoint extends OGLApplicationGL33 {
                 .rotate((float)Math.toRadians(60.f), tempVec3.set(1.0f,0.f,1.f).normalize())
                 .translate(-1.5f,2.f,-3.f));
         renderCube();
-    }
-
-    private void renderQuard()  {
-        glBindVertexArray(mQuardVAO);
-        glDrawArrays(GL_TRIANGLE_STRIP,0,4);
-        glBindVertexArray(0);
     }
 
     private void renderCube()   {

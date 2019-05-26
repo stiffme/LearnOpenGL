@@ -19,9 +19,9 @@ out vec3 oFragCoord; //frag pos in view space
 out vec3 oNormal;   //normalized norm vector in view space
 
 void main() {
-    vec4 posInView = view * model * vec4(aPos, 1.0f);
-    mat4 normalMat = transpose(inverse(view * model));
-    oFragCoord = posInView.xyz;
+    vec4 posInWorld =  model * vec4(aPos, 1.0f);
+    mat4 normalMat = transpose(inverse(model));
+    oFragCoord = posInWorld.xyz;
     oTexCoord = aTexCoord;
 
 
@@ -31,5 +31,5 @@ void main() {
         oNormal = normalize(vec3(normalMat * vec4(aNormal,0.f)));
     }
 
-    gl_Position = projection * posInView;
+    gl_Position = projection * view * posInWorld;
 }

@@ -6,7 +6,8 @@ in vec3 oNormal;   //normalized norm vector in view space
 
 uniform sampler2D floorTexture;
 uniform vec3 lightPos;
-uniform sampler2D shadowMap;
+uniform vec3 viewPos;
+uniform samplerCube shadowMap;
 
 out vec4 oColor;
 
@@ -23,7 +24,7 @@ void main() {
     vec3 diffuse = lightColor *  diff * color;
 
     //specular
-    vec3 viewDir = normalize(-oFragCoord);
+    vec3 viewDir = normalize(viewPos-oFragCoord);
     float spec = 0.0;
     vec3 halfwayDir = normalize(viewDir + lightDir);
     spec = pow(max(dot(halfwayDir, oNormal), 0.0), 64.0);

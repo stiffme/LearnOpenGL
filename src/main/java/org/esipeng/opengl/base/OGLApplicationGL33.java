@@ -45,6 +45,26 @@ public abstract class OGLApplicationGL33 extends OGLApplicationAbstract {
         return program;
     }
 
+    protected int linkProgram(int vShader,int gShader, int fShader)    {
+        int program = glCreateProgram();
+        if(program == 0)
+            return 0;
+
+        glAttachShader(program, vShader);
+        glAttachShader(program, fShader);
+        glAttachShader(program, gShader);
+        glLinkProgram(program);
+
+        int linkStatus = glGetProgrami(program, GL_LINK_STATUS);
+        if(linkStatus != GL_TRUE)   {
+            System.out.println("Link failed " +
+                    glGetProgramInfoLog(program));
+            return 0;
+        }
+        m_programs.add(program);
+        return program;
+    }
+
     protected int loadShader(int type, String shaderSrc) throws Exception    {
         int shader = glCreateShader(type);
         glShaderSource(shader,shaderSrc);
@@ -67,6 +87,18 @@ public abstract class OGLApplicationGL33 extends OGLApplicationAbstract {
         int vShader = loadShader(GL_VERTEX_SHADER, vShaderSrc);
         int fShader = loadShader(GL_FRAGMENT_SHADER, fShaderSrc);
         int program = linkProgram(vShader, fShader);
+        return program;
+    }
+
+    protected int compileAndLinkProgram(String vShaderPath,String gShaderPath, String fShaderPath) throws Exception    {
+        String vShaderSrc = loadFileFromResource(vShaderPath);
+        String fShaderSrc = loadFileFromResource(fShaderPath);
+        String gShaderSrc = loadFileFromResource(gShaderPath);
+
+        int vShader = loadShader(GL_VERTEX_SHADER, vShaderSrc);
+        int fShader = loadShader(GL_FRAGMENT_SHADER, fShaderSrc);
+        int gShader = loadShader(GL_GEOMETRY_SHADER, gShaderSrc);
+        int program = linkProgram(vShader,gShader, fShader);
         return program;
     }
 
