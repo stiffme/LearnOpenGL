@@ -7,9 +7,29 @@ in vec3 oNormal;   //normalized norm vector in view space
 uniform sampler2D floorTexture;
 uniform vec3 lightPos;
 uniform vec3 viewPos;
-uniform samplerCube shadowMap;
-
+uniform samplerCube depthMap;
+uniform float far_plane;
 out vec4 oColor;
+
+
+float ShadowCalculation(vec3 fragPos)
+{
+    // get vector between fragment position and light position
+    vec3 fragToLight = fragPos - lightPos;
+    // ise the fragment to light vector to sample from the depth map
+    float closestDepth = texture(depthMap, fragToLight).r;
+    // it is currently in linear range between [0,1], let's re-transform it back to original depth value
+    closestDepth *= far_plane;
+    // now get current linear depth as the length between the fragment and light position
+    float currentDepth = length(fragToLight);
+    // test for shadows
+    float bias = 0.05; // we use a much larger bias since depth is now in [near_plane, far_plane] range
+    float shadow = currentDepth -  bias > closestDepth ? 1.0 : 0.0;
+    // display closestDepth as debug (to visualize depth cubemap)
+    //oColor = vec4(vec3(closestDepth / far_plane), 1.0);
+
+    return shadow;
+}
 
 
 void main() {
@@ -30,6 +50,6 @@ void main() {
     spec = pow(max(dot(halfwayDir, oNormal), 0.0), 64.0);
 
     vec3 specular = lightColor  * spec * color;
-
-    oColor = vec4(ambient + ( diffuse + specular), 1.0);
+    float shadow = ShadowCalculation(oFragCoord);
+    oColor = vec4(ambient + (1.0 - shadow) * ( diffuse + specular), 1.0);
 }

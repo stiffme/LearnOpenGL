@@ -198,6 +198,16 @@ public abstract class OGLApplicationGL33 extends OGLApplicationAbstract {
         return true;
     }
 
+    protected boolean setUniformMatrix4(int program, String uniform, float[] data)   {
+        int uniformLoc = glGetUniformLocation(program,uniform);
+        if(uniformLoc == -1)    {
+            logger.warn("Uniform {} not set ", uniform);
+            return false;
+        }
+        glUseProgram(program);
+        glUniformMatrix4fv(uniformLoc,false, data);
+        return true;
+    }
 
     protected void frameBufferSizeChanged(long window, int width, int height)   {
         glViewport(0,0,width,height);
