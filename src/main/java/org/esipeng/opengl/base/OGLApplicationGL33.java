@@ -238,6 +238,8 @@ public abstract class OGLApplicationGL33 extends OGLApplicationAbstract {
                     }
                 }
             }, 0L);
+        } else {
+            logger.warn("Debug not supported!");
         }
     }
 

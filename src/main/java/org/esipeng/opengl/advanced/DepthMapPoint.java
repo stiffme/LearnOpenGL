@@ -315,7 +315,7 @@ public class DepthMapPoint extends OGLApplicationGL33 {
             buildShadowMatrices(mDepthShader);
             setUniform3f(mDepthShader,"lightPos", lightPos.x, lightPos.y, lightPos.z);
             setUniform1f(mDepthShader,"far_plane",far_plane);
-            renderScene(mDepthShader);
+            renderScene(mDepthShader,false);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         glViewport(0,0,mWidth,mHeight);
@@ -340,17 +340,19 @@ public class DepthMapPoint extends OGLApplicationGL33 {
         glBindTexture(GL_TEXTURE_2D,this.mWoodTexture);
         glActiveTexture(GL_TEXTURE0 + CUBE_DEPTH_TEXTURE);
         glBindTexture(GL_TEXTURE_CUBE_MAP, this.mTextureDepthMap);
-        renderScene(mShader);
+        renderScene(mShader,true);
     }
 
-    private void renderScene(int program)  {
+    private void renderScene(int program, boolean updateReverseNormal)  {
         //outer
         glDisable(GL_CULL_FACE);
         mvpManager.updateModel(tempMat.identity().scale(10.f));
-        setUniform1i(program,"reverseNormal", 1);
+        if(updateReverseNormal)
+            setUniform1i(program,"reverseNormal", 1);
         renderCube();
 
-        setUniform1i(program,"reverseNormal", 0);
+        if(updateReverseNormal)
+            setUniform1i(program,"reverseNormal", 0);
         glEnable(GL_CULL_FACE);
 
         mvpManager.updateModel(tempMat.identity().scale(0.5f).translate(4.f,-3.f,0.f));
