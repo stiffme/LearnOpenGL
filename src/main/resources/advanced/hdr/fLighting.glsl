@@ -15,6 +15,7 @@ struct Light {
 
 uniform lightSetting {
     Light lights[16];
+    int lightNum;
 };
 
 uniform sampler2D diffuseTexture;
@@ -27,7 +28,7 @@ void main() {
     vec3 ambient = 0.0 * color;
     // lighting
     vec3 lighting = vec3(0.0);
-    for(int i = 0; i < 16; i++)
+    for(int i = 0; i < lightNum; i++)
     {
         // diffuse
         vec3 lightDir = normalize(lights[i].Position - fs_in.FragPos);

@@ -66,7 +66,7 @@ public class HDR extends OGLApplicationGL33 {
         };
 
         mLightColors = new Vector3f[]   {
-                new Vector3f(2000.0f, 2000.0f, 2000.0f),
+                new Vector3f(200, 200, 200),
                 new Vector3f(0.1f, 0.0f, 0.0f),
                 new Vector3f(0.0f, 0.0f, 0.2f),
                 new Vector3f(0.0f, 0.1f, 0.0f),
@@ -123,6 +123,7 @@ public class HDR extends OGLApplicationGL33 {
                     mLightColors[i]
             );
         }
+        lightSettingManager.setValue("lightNum",mLightPositions.length);
 
         //update model
         tempMat.identity().translate(0.f,0.f,25.f).scale(5.f,5.f,55.f);
